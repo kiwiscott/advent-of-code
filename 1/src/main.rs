@@ -59,7 +59,7 @@ fn number_of_elements_equal(value: i32, numbers: &Vec<i32>, elements: i32, parts
         
     if elements > 2{
         for i in numbers{
-            two_values_equal(value - i, numbers, elements - 1 , parts);
+            number_of_elements_equal(value - i, numbers, elements - 1 , parts);
             if ! parts.is_empty() {
                 parts.insert(0,*i);
                 return
