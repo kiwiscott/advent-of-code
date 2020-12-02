@@ -8,14 +8,14 @@ fn main() {
 
     let mut parts = Vec::<i32>::new();
     
-    two_values_equal( 2020, &the_numbers,2, &mut parts);
+    number_of_elements_equal( 2020, &the_numbers,2, &mut parts);
     println!("First Problem.......{:?} ,  {:?}  ", parts.iter().sum::<i32>(), parts.iter().product::<i32>());
     println!("First Problem Parts......{:?}", parts);
 
 
     parts.clear();
 
-    two_values_equal( 2020, &the_numbers,3, &mut parts);
+    number_of_elements_equal( 2020, &the_numbers,3, &mut parts);
     println!("Second Problem.......{:?} ,  {:?}  ", parts.iter().sum::<i32>(), parts.iter().product::<i32>());
     println!("Second Problem Parts......{:?}", parts);
 
@@ -45,7 +45,7 @@ fn find_number_two_values(value: i32, numbers: &Vec<i32>) -> (i32,i32) {
 }
 
 
-fn two_values_equal(value: i32, numbers: &Vec<i32>, elements: i32, parts: &mut Vec<i32> )
+fn number_of_elements_equal(value: i32, numbers: &Vec<i32>, elements: i32, parts: &mut Vec<i32> )
 {
     //if there are two parts only required we need to find a number that equals the value 
     if elements == 2{
