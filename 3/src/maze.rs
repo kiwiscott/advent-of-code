@@ -28,6 +28,7 @@ impl SkiRun {
     }
 }
 
+
 fn mv_right(start: usize, right: usize) -> usize {
     if start == 0 {
         return 1;
