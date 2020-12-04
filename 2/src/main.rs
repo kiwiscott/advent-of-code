@@ -1,22 +1,24 @@
-use std::fs::File;
-use std::io::{BufReader,BufRead};
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 
 use regex::Regex;
 
 fn main() {
-    let file_name  = "data.txt";
+    let file_name = "data.txt";
 
-    let result1 =  file_lines(file_name).iter()
-                    .map(|s|string_password(s))
-                    .map(|p| valid_password_policy_1(&p))
-                    .filter(|x| *x)
-                    .count();
+    let result1 = file_lines(file_name)
+        .iter()
+        .map(|s| string_password(s))
+        .map(|p| valid_password_policy_1(&p))
+        .filter(|x| *x)
+        .count();
 
     println!("First Problem Parts......{:?}", result1);
 
-    let result2 =  file_lines(file_name).iter()
-        .map(|s|string_password(s))
+    let result2 = file_lines(file_name)
+        .iter()
+        .map(|s| string_password(s))
         .map(|p| valid_password_policy_2(&p))
         .filter(|x| *x)
         .count();
@@ -30,46 +32,44 @@ pub struct Password {
     min: i32,
     max: i32,
     letter: char,
-    password: String
+    password: String,
 }
 
-pub fn valid_password_policy_2(p: &Password) -> bool
-{
+pub fn valid_password_policy_2(p: &Password) -> bool {
     /*
-    The character p.letter must appear in either the 
-    p.min and p.max position but not both. 
+    The character p.letter must appear in either the
+    p.min and p.max position but not both.
     */
     let char_vec: Vec<char> = p.password.chars().collect();
-   
-    let m = (p.min - 1) as usize; 
-    let mm = (p.max - 1) as usize; 
+
+    let m = (p.min - 1) as usize;
+    let mm = (p.max - 1) as usize;
 
     //Both cannot be true
-    if  char_vec[m] == p.letter && char_vec[mm] == p.letter {
-        return false; 
+    if char_vec[m] == p.letter && char_vec[mm] == p.letter {
+        return false;
     }
-    return  char_vec[m] == p.letter || char_vec[mm] == p.letter;
+    return char_vec[m] == p.letter || char_vec[mm] == p.letter;
 }
 
-pub fn valid_password_policy_1(p: &Password) -> bool
-{
+pub fn valid_password_policy_1(p: &Password) -> bool {
     /*
     The character p.letter must only appear between p.min and p.max times
     */
     let mut char_map: HashMap<char, i32> = HashMap::new();
 
-    for c in p.password.chars(){
-        if char_map.contains_key(&c)
-        {
-            let i = 1 + char_map[&c]; 
+    for c in p.password.chars() {
+        if char_map.contains_key(&c) {
+            let i = 1 + char_map[&c];
             char_map.remove(&c);
             char_map.insert(c, i);
-        }
-        else{
+        } else {
             char_map.insert(c, 1);
         }
     }
-    return char_map.contains_key(&p.letter) && (p.min <= char_map[&p.letter]) &&  char_map[&p.letter] <= p.max
+    return char_map.contains_key(&p.letter)
+        && (p.min <= char_map[&p.letter])
+        && char_map[&p.letter] <= p.max;
 }
 
 pub fn string_password(s: &str) -> Password {
@@ -78,9 +78,9 @@ pub fn string_password(s: &str) -> Password {
     let caps = re.captures(s).unwrap();
 
     return Password {
-        min: caps.get(1).unwrap().as_str().parse::<i32>().unwrap(),  
-        max: caps.get(2).unwrap().as_str().parse::<i32>().unwrap(),  
-        letter: caps.get(3).unwrap().as_str().parse::<char>().unwrap(),  
+        min: caps.get(1).unwrap().as_str().parse::<i32>().unwrap(),
+        max: caps.get(2).unwrap().as_str().parse::<i32>().unwrap(),
+        letter: caps.get(3).unwrap().as_str().parse::<char>().unwrap(),
         password: caps.get(4).unwrap().as_str().to_string(),
     };
 }
@@ -88,12 +88,11 @@ pub fn string_password(s: &str) -> Password {
 fn file_lines(file_name: &str) -> Vec<String> {
     let file = File::open(file_name).unwrap();
     let reader = BufReader::new(file);
-    let v: Vec<String> =  reader.lines().map(|s|s.unwrap()).collect();
-    return v; 
+    let v: Vec<String> = reader.lines().map(|s| s.unwrap()).collect();
+    return v;
 }
 
-
-//String to Password 
+//String to Password
 #[test]
 fn can_take_string_to_password() {
     let p = string_password("1-3 a: abcde");
@@ -112,7 +111,6 @@ fn can_take_string_to_diff_password() {
     assert_eq!("zzzzz", p.password);
 }
 
-
 #[test]
 fn can_take_string_to_diff_password2() {
     let p = string_password("14-15 d: dzjgbdwdkdhdddh");
@@ -124,18 +122,33 @@ fn can_take_string_to_diff_password2() {
 
 #[test]
 fn policy_2() {
-    let p = Password { min: 1, max: 3,letter: 'a', password :"abcde".to_string()};
+    let p = Password {
+        min: 1,
+        max: 3,
+        letter: 'a',
+        password: "abcde".to_string(),
+    };
     assert_eq!(true, valid_password_policy_2(&p));
 }
 
 #[test]
 fn policy_2_both_cannot_be_the_same() {
-    let p = Password { min: 1, max: 3,letter: 'a', password :"abade".to_string()};
+    let p = Password {
+        min: 1,
+        max: 3,
+        letter: 'a',
+        password: "abade".to_string(),
+    };
     assert_eq!(false, valid_password_policy_2(&p));
 }
 
 #[test]
 fn policy_2_valid_in_second_position() {
-    let p = Password { min: 1, max: 3,letter: 'a', password :"zbade".to_string()};
+    let p = Password {
+        min: 1,
+        max: 3,
+        letter: 'a',
+        password: "zbade".to_string(),
+    };
     assert_eq!(true, valid_password_policy_2(&p));
 }
