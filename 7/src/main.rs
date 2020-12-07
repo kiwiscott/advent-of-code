@@ -2,13 +2,12 @@ use aoc::bag_map::BagMap;
 
 fn main() {
     let lines = all_lines("input.txt");
-    let bg = BagMap::new(lines); 
-    
+    let bg = BagMap::new(lines);
+
     let found = bg.all_outer_bags_for_bag("shiny gold");
     println!("{:?} -- {:?}", found.len(), found);
 
-
-    let problem2 = bg.bags_within_bag("shiny gold"); 
+    let problem2 = bg.bags_within_bag("shiny gold");
     println!("Problem 2 -- {:?}", problem2);
 }
 
