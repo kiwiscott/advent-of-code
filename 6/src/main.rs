@@ -1,10 +1,12 @@
 use aoc_6::file_splitter::FileSplitter;
-use std::collections::{HashMap, HashSet};
+use itertools::Itertools;
+use std::collections::HashMap;
 use std::convert::TryInto;
 
 fn main() {
     let c: usize = FileSplitter::new(String::from("data.txt"))
-        .map(|a| any_question_answered_in_group(&a).len())
+        //.map(|a| any_question_answered_in_group(&a).len())
+        .map(|x| x.chars().filter(|p| p != &' ').unique().count())
         .sum();
 
     println!(
@@ -16,9 +18,9 @@ fn main() {
         .map(|a| all_questions_answered_in_group(&a).len())
         .sum();
 
-    assert_eq!(c, 6585);
-    assert_eq!(c2, 3276);
-
+    //left these in here for refactoring testing.
+    //assert_eq!(c, 6585);
+    //assert_eq!(c2, 3276);
 
     println!(
         "2. Sum the number of questions answered yes by everyone in the group {:?}",
@@ -26,8 +28,10 @@ fn main() {
     );
 }
 
-fn any_question_answered_in_group(data: &str) -> HashSet<char> {
-    let mut v = HashSet::new();
+/*
+//Replaced by iter above using unique.
+fn any_question_answered_in_group(data: &str) -> std::collections::HashSet<char> {
+    let mut v = std::collections::HashSet::new();
     for c in data.chars().filter(|p| p != &' ') {
         if !v.contains(&c) {
             v.insert(c);
@@ -35,6 +39,8 @@ fn any_question_answered_in_group(data: &str) -> HashSet<char> {
     }
     v
 }
+*/
+
 fn all_questions_answered_in_group(data: &str) -> Vec<char> {
     let num_in_group: u8 = data.split_ascii_whitespace().count().try_into().unwrap();
     //println!("G: {:?}", num_in_group);

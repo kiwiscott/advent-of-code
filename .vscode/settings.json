@@ -3,5 +3,5 @@
         "**/*/*.lock": true,
         "**/*/target": true
     },
-    "editor.fontSize": 15
+    "editor.fontSize": 17
 }
