@@ -20,7 +20,6 @@ impl BagMap {
             for cap in RE.captures_iter(&l) {
                 if firstbag {
                     s = String::from(&cap[1]);
-
                     bags.insert(String::from(&cap[1]), vec![]);
                     firstbag = false;
                 } else {
@@ -39,21 +38,18 @@ impl BagMap {
         BagMap { map: bags }
     }
 
-    pub fn bags_within_bag(&self, bag: &str) -> u32 {
-        let x = self.internal_bags_within_bag(bag);
-        x - 1 // this bag doesn't need to be included
+    pub fn bbags_within_bag(&self, bag: &str) -> u32 {
+        let x = self.bags_within_bag(bag);
+        x - 1 // theouter bag doesn't need to be included
     }
 
-    fn internal_bags_within_bag(&self, bag: &str) -> u32 {
+    pub fn bags_within_bag(&self, bag: &str) -> u32 {
         let v = self.map.get(bag).unwrap();
 
-        if v.len() == 0 {
-            return 1;
-        }
 
         let x = v
             .iter()
-            .map(|(c, b)| c * self.internal_bags_within_bag(b))
+            .map(|(c, b)| c * self.bags_within_bag(b))
             .sum::<u32>();
 
         println!("{:?} {:?} {:?}", x, bag, v.len());

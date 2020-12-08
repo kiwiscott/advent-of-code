@@ -5,10 +5,15 @@ fn main() {
     let bg = BagMap::new(lines);
 
     let found = bg.all_outer_bags_for_bag("shiny gold");
-    println!("{:?} -- {:?}", found.len(), found);
+    assert_eq!(131,found.iter().count(), "Expected 131. Found {:?}",found.iter().count());
+    println!("Problem 1 -- {:?}", found.iter().count());
+
 
     let problem2 = bg.bags_within_bag("shiny gold");
-    println!("Problem 2 -- {:?}", problem2);
+    
+    //Calculation will include this bag which we don't need 
+    static OUTER_BAG: u32 = 1;
+    println!("Problem 2 -- {:?}", problem2 - OUTER_BAG);
 }
 
 pub fn all_lines(file_name: &str) -> Vec<String> {
