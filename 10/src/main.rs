@@ -1,7 +1,6 @@
 use aoc::common::*;
 use std::cmp::Ordering;
 use std::collections::VecDeque;
-use std::time::{ Instant};
 
 fn main() {
     let preamble_len = 25;
@@ -10,36 +9,10 @@ fn main() {
         .lines()
         .map(|l| l.parse::<i64>().unwrap())
         .collect();
-
-    
-    let start = Instant::now();
-
-
-    let p1 = match problem1(preamble_len, numbers.clone()) {
-        Some(n) => {
-            println!(
-                "Problem 1: Number [{:?}] is not a sum of its preamble numbers",
-                n
-            );
-            n
-        }
-        None => {
-            println!("Problem 1: All numbers are valid");
-            i64::MIN
-        }
-    };
-    println!("P1 time is: {:?}", start.elapsed());
-    let start = Instant::now();
-    if p1 == i64::MIN {
-        return;
-    }
-
-    match problem2(numbers.clone(), p1) {
-        Some(n) => println!("Problem 2: Sum {:?} [{:?}]", n.0 + n.1, n),
-        None => println!("Problem 2: All numbers are valid"),
-    }
-    println!("P2 time is: {:?}", start.elapsed());
+        
 }
+
+/*
 fn problem2(numbers: Vec<i64>, number_to_find: i64) -> Option<(i64, i64)> {
     let mut nums_in_play: VecDeque<i64> = VecDeque::new();
     let mut index = 0;
@@ -88,3 +61,4 @@ fn problem1(preamble_length: usize, numbers: Vec<i64>) -> Option<i64> {
     }
     return None;
 }
+*/
