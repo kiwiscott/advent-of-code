@@ -32,7 +32,6 @@ fn main() {
         Some(n) => println!("Problem 2: Sum {:?} [{:?}]", n.0 + n.1, n),
         None => println!("Problem 2: All numbers are valid"),
     }
-    println!("Should BE: 1261309 [(408514, 852795)]");
 }
 fn problem2(numbers: Vec<i64>, number_to_find: i64) -> Option<(i64, i64)> {
     let mut nums_in_play: VecDeque<i64> = VecDeque::new();
@@ -61,7 +60,8 @@ fn problem2(numbers: Vec<i64>, number_to_find: i64) -> Option<(i64, i64)> {
 
 fn problem1(preamble_length: usize, numbers: Vec<i64>) -> Option<i64> {
     //What is the first number that does cannot be represented by a sum of two numbers in the previous 'preamble' numbers?
-    //Build to preamble
+
+    //Build to preamble. Rust annoys me a bit here because I could just use a slice
     let mut preamble: VecDeque<i64> = VecDeque::with_capacity(preamble_length);
     numbers
         .iter()
