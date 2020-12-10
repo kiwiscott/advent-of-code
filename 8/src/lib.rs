@@ -1,3 +1,8 @@
+#[macro_use]
+extern crate lazy_static;
+
+pub mod machine; 
+
 pub mod common {
     use std::fs::File;
     use std::io::prelude::*;
