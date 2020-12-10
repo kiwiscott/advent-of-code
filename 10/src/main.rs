@@ -1,64 +1,79 @@
 use aoc::common::*;
-use std::cmp::Ordering;
-use std::collections::VecDeque;
+use std::collections::HashMap;
 
 fn main() {
-    let preamble_len = 25;
-    let numbers: Vec<i64> = read_file("input.txt")
+    let mut jolt_adapters: Vec<i64> = read_file("input.txt")
         .unwrap()
         .lines()
         .map(|l| l.parse::<i64>().unwrap())
         .collect();
-        
-}
 
-/*
-fn problem2(numbers: Vec<i64>, number_to_find: i64) -> Option<(i64, i64)> {
-    let mut nums_in_play: VecDeque<i64> = VecDeque::new();
-    let mut index = 0;
-    let mut sum = 0;
+    //add zero to the start
+    jolt_adapters.push(0);
+    //last adapters has a capacity of 3 jolts higher
+    let device_to_highest_joltage_gap: i32 = 3;
 
-    while index < numbers.len() {
-        match sum.cmp(&number_to_find) {
-            Ordering::Less => {
-                nums_in_play.push_back(numbers[index]);
-                sum = sum + numbers[index];
-                index = index + 1;
-            }
-            Ordering::Greater => {
-                sum = sum - nums_in_play.pop_front().unwrap();
-            }
-            Ordering::Equal => {
-                let min = nums_in_play.iter().map(|n| *n).min().unwrap();
-                let max = nums_in_play.iter().map(|n| *n).max().unwrap();
-                return Some((min, max));
-            }
-        }
-    }
-    None
-}
+    //p1 requires a sorted array
+    jolt_adapters.sort();
 
-fn problem1(preamble_length: usize, numbers: Vec<i64>) -> Option<i64> {
-    //What is the first number that does cannot be represented by a sum of two numbers in the previous 'preamble' numbers?
-
-    //Build to preamble. Rust annoys me a bit here because I could just use a slice
-    let mut preamble: VecDeque<i64> = VecDeque::with_capacity(preamble_length);
-    numbers
+    let p1: HashMap<i32, i32> = jolt_adapters
         .iter()
-        .take(preamble_length)
-        .for_each(|n| preamble.push_back(*n));
+        .enumerate()
+        //Find the difference to the next item
+        .map(|(index, joltage)| match jolt_adapters.get(index + 1) {
+            Some(next_joltage) => (next_joltage - joltage) as i32,
+            None => device_to_highest_joltage_gap, //Last Row is always + 3,
+        })
+        //HashMap of diffrences and the count of those differences
+        .fold(HashMap::<i32, i32>::new(), |mut acc, a| {
+            *acc.entry(a).or_insert(0) += 1;
+            acc
+        });
 
-    //println!("Preamble {:?}-{:?}",preamble.len(),preamble);
+    //2738
+    println!(
+        "p1. Product of one volt jumps [{:?}], three volts jumps [{:?}] is [{:?}]",
+        p1.get(&1).unwrap(),
+        p1.get(&3).unwrap(),
+        p1.get(&1).unwrap() * p1.get(&3).unwrap()
+    );
 
-    for n in numbers.iter().skip(preamble_length) {
-        let found = preamble.iter().any(|a| preamble.contains(&(n - a)));
-        if !found {
-            return Some(*n);
-        }
-        //Take off the Preamble and put on the preamble
-        preamble.pop_front();
-        preamble.push_back(*n);
+    //add the last value
+    let device_joltage = (*jolt_adapters.last().unwrap()) + (device_to_highest_joltage_gap as i64);
+    //numbers.push(max+3);
+    jolt_adapters.reverse();
+
+    //74049191673856
+    match bottom_up_tree_walk(jolt_adapters, device_joltage) {
+        Some(n) => println!("p2. All Possible combinations [{:?}]", n),
+        None => println!("p2, Not Solved!"),
     }
-    return None;
 }
-*/
+
+fn bottom_up_tree_walk(jolt_adapters: Vec<i64>, device_joltage: i64) -> Option<i64> {
+    let mut cache = HashMap::<i64, i64>::new();
+    let possible_jolt_upgrades = [1, 2, 3];
+
+    //There is only one end device
+    cache.insert(device_joltage, 1);
+    //Reverse for Caching
+
+    //We walk the numbers in reverse and create a cache for each of the sub paths.
+    //We do that so we can lookup the cache to sum the nodes of the sub paths.
+    for adapter_joltage in jolt_adapters {
+        let mut sub_paths = 0;
+
+        for i in possible_jolt_upgrades.iter() {
+            match cache.get(&(adapter_joltage + i)) {
+                Some(n) => sub_paths = sub_paths + n,
+                None => (),
+            }
+        }
+        cache.insert(adapter_joltage, sub_paths);
+        //println!("{:?}-{:?}", number, sub_paths);
+    }
+    match cache.get(&0) {
+        Some(n) => Some(*n),
+        None => None,
+    }
+}
