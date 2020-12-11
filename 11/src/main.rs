@@ -98,7 +98,7 @@ impl Ferry {
             return (true, SeatState::Occupied);
         }
 
-        println!("{:?}",self.adjacent_occupied_seats(row, seat));
+        //println!("{:?}", self.adjacent_occupied_seats(row, seat));
 
         if state == SeatState::Empty && self.adjacent_occupied_seats(row, seat) == 0 {
             return (true, SeatState::Occupied);
@@ -112,79 +112,12 @@ impl Ferry {
 
         (false, state)
     }
-    /*
-    fn adjacent_seat_check(&self, row: isize, seat: isize, direction: Direction) -> bool {
-        let (row_inc, seat_inc) = match direction {
-            Direction::Left => (0, -1),
-            Direction::DiagonalUpLeft => (-1, -1),
-            Direction::Up => (-1, 0),
-            Direction::DiagonalUpRight => (-1, 1),
-            Direction::Right => (0, 1),
-            Direction::DiagonalDownRight => (1, 1),
-            Direction::Down => (1, 0),
-            Direction::DiagonalDownLeft => (1, -1),
-        };
-
-        let mut result = false;
-        let mut breakme = false;
-
-        let mut check_row = row;
-        let mut check_seat = seat;
-        let mut counter = 0;
-        while !breakme && (counter < self.max_distance) {
-            counter = counter + 1;
-
-            check_row = check_row + row_inc;
-            check_seat = check_seat + seat_inc;
-
-            match self.seat_occupied(check_row, check_seat) {
-                None => breakme = true,
-                Some((true, SeatState::Occupied)) => {
-                    result = true;
-                    breakme = true;
-                },
-                Some((_, SeatState::Floor)) => {
-                    breakme = false;
-                }
-                Some((false, SeatState::Empty)) => {
-                    breakme = true;
-                },
-                _=> ()
-            }
-        }
-
-        result
-    }
-
-    fn adjacent_occupied_seats(&self, row: isize, seat: isize) -> u8 {
-        let mut occupied = 0;
-
-        let directions = [
-            Direction::Left,
-            Direction::DiagonalUpLeft,
-            Direction::Up,
-            Direction::DiagonalUpRight,
-            Direction::Right,
-            Direction::DiagonalDownRight,
-            Direction::Down,
-            Direction::DiagonalDownLeft,
-        ];
-
-        for d in directions.iter() {
-            match self.adjacent_seat_check(row, seat, *d) {
-                true => occupied += 1,
-                _ => (),
-            }
-        }
-
-        return occupied;
-    } */
 
     fn adjacent_occupied_seats(&self, row: isize, seat: isize) -> u8 {
         let mut neighbours = 0;
 
-        let mut check_row = row;
-        let mut check_seat = seat;
+        let check_row = row - 1; //zero based
+        let check_seat = seat - 1; //zero based
 
         for ri in [-1, 0, 1].iter() {
             for si in [-1, 0, 1].iter() {
@@ -192,16 +125,27 @@ impl Ferry {
                     continue;
                 }
 
-                if (check_row + ri) < 0 || (check_seat + si) < 0 {
-                    continue;
+                let mut cr = check_row + ri;
+                let mut cs = check_seat + si;
+                let mut counter = 1;
+
+                while self.between_zero_and(cr, self.rows.len())
+                    && self.between_zero_and(cs, self.rows[0].len())
+                    && self.rows[usize::try_from(cr).unwrap()][usize::try_from(cs).unwrap()]
+                        == SeatState::Floor
+                {
+                    if counter >= self.max_distance {
+                        break;
+                    }
+                    cr = cr + ri;
+                    cs = cs + si;
+                    counter += 1;
                 }
-
-                let check_row = usize::try_from(check_row + ri).unwrap();
-                let check_seat = usize::try_from(check_seat + si).unwrap();
-
-                if check_row < self.rows.len()
-                    && check_seat < self.rows[0].len()
-                    && self.rows[check_row][check_seat] == SeatState::Occupied
+                //println!("{:?} {:?}",cr,cs);
+                if self.between_zero_and(cr, self.rows.len())
+                    && self.between_zero_and(cs, self.rows[0].len())
+                    && self.rows[usize::try_from(cr).unwrap()][usize::try_from(cs).unwrap()]
+                        == SeatState::Occupied
                 {
                     neighbours += 1;
                 }
@@ -210,22 +154,9 @@ impl Ferry {
 
         return neighbours;
     }
-
-    fn seat_occupied(&self, row: isize, seat: isize) -> Option<(bool, SeatState)> {
-        if row <= 0 || seat <= 0 {
-            return None; //seat and rows are zero indexed so this is off the front or the left
-        }
-        let zrow = usize::try_from(row - 1).unwrap();
-        let zseat = usize::try_from(seat - 1).unwrap();
-
-        match self.rows.get(zrow) {
-            None => return None,
-            Some(row) => match row.get(zseat) {
-                Some(SeatState::Occupied) => Some((true, SeatState::Occupied)),
-                Some(ss) => Some((false, *ss)),
-                _ => None,
-            },
-        }
+    
+    fn between_zero_and(&self, value: isize, max: usize) -> bool {
+        value >= 0 && usize::try_from(value).unwrap() < max
     }
 }
 
@@ -261,18 +192,6 @@ impl From<Vec<String>> for Ferry {
             max_distance: 1,
         }
     }
-}
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-enum Direction {
-    Left,
-    DiagonalUpLeft,
-    Up,
-    DiagonalUpRight,
-    Right,
-    DiagonalDownRight,
-    Down,
-    DiagonalDownLeft,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -451,6 +370,7 @@ mod tests {
         for row in 0..10 {
             assert_eq!(ferry.rows[row], expected_ferry.rows[row], "Row {:?}", row);
         }
+        assert_eq!(37, ferry.occupied_seats(), "Seats Wrong");
     }
     #[test]
     fn run_with_sample_data_round_2() {
@@ -505,14 +425,7 @@ mod tests {
         ];
 
         let mut ferry = Ferry::from(s);
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::Left));
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::DiagonalUpLeft));
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::Up));
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::DiagonalUpRight));
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::Right));
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::DiagonalDownRight));
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::Down));
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::DiagonalDownLeft));
+        assert_eq!(0, ferry.adjacent_occupied_seats(1, 1));
     }
 
     #[test]
@@ -524,32 +437,9 @@ mod tests {
         ];
 
         let mut ferry = Ferry::from(s);
-        assert!(ferry.adjacent_seat_check(2, 2, Direction::Left));
-        assert!(ferry.adjacent_seat_check(2, 2, Direction::DiagonalUpLeft));
-        assert!(ferry.adjacent_seat_check(2, 2, Direction::Up));
-        assert!(ferry.adjacent_seat_check(2, 2, Direction::DiagonalUpRight));
-        assert!(ferry.adjacent_seat_check(2, 2, Direction::Right));
-        assert!(ferry.adjacent_seat_check(2, 2, Direction::DiagonalDownRight));
-        assert!(ferry.adjacent_seat_check(2, 2, Direction::Down));
-        assert!(ferry.adjacent_seat_check(2, 2, Direction::DiagonalDownLeft));
-    }
-    #[test]
-    fn seats_to_check_test_all_true() {
-        let s = vec![
-            String::from("###"),
-            String::from("###"),
-            String::from("###"),
-        ];
-
-        let mut ferry = Ferry::from(s);
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::Left));
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::DiagonalUpLeft));
-        assert!(!ferry.adjacent_seat_check(1, 1, Direction::Up));
-        assert!(!ferry.adjacent_seat_check(2, 3, Direction::DiagonalUpRight));
-        assert!(!ferry.adjacent_seat_check(2, 3, Direction::Right));
-        assert!(!ferry.adjacent_seat_check(2, 3, Direction::DiagonalDownRight));
-        assert!(!ferry.adjacent_seat_check(3, 3, Direction::Down));
-        assert!(!ferry.adjacent_seat_check(3, 3, Direction::DiagonalDownLeft));
+        assert_eq!(3, ferry.adjacent_occupied_seats(1, 1));
+        assert_eq!(8, ferry.adjacent_occupied_seats(2, 2));
+        assert_eq!(3, ferry.adjacent_occupied_seats(3, 3));
     }
     #[test]
     fn seats_to_check_test_all_true_surrounded() {
@@ -563,52 +453,9 @@ mod tests {
 
         let mut ferry = Ferry::from(s);
         ferry.max_distance = 5;
-        let alld = [
-            Direction::Left,
-            Direction::DiagonalUpLeft,
-            Direction::Up,
-            Direction::DiagonalUpRight,
-            Direction::Right,
-            Direction::DiagonalDownRight,
-            Direction::Down,
-            Direction::DiagonalDownLeft,
-        ];
-        for d in alld.iter() {
-            assert!(ferry.adjacent_seat_check(3, 3, *d), "{:?}", d);
-        }
-    }
-    #[test]
-    fn seats_to_check_test_all_extreme_true() {
-        let s = vec![
-            String::from("#####"),
-            String::from("#...#"),
-            String::from("#...#"),
-            String::from("#...#"),
-            String::from("#####"),
-        ];
 
-        let mut ferry = Ferry::from(s);
-        ferry.max_distance = 100;
-        assert!(ferry.adjacent_seat_check(2, 1, Direction::Right), "Right");
-        assert!(ferry.adjacent_seat_check(2, 4, Direction::Left), "Left");
-        assert!(ferry.adjacent_seat_check(1, 2, Direction::Down), "Up");
-        assert!(ferry.adjacent_seat_check(5, 4, Direction::Up), "Down");
-
-        assert!(
-            ferry.adjacent_seat_check(1, 1, Direction::DiagonalDownRight),
-            "DiagonalDownRight"
-        );
-        assert!(
-            ferry.adjacent_seat_check(1, 5, Direction::DiagonalDownLeft),
-            "DiagonalDownLeft"
-        );
-        assert!(
-            ferry.adjacent_seat_check(5, 1, Direction::DiagonalUpRight),
-            "DiagonalUpRight"
-        );
-        assert!(
-            ferry.adjacent_seat_check(5, 5, Direction::DiagonalUpLeft),
-            "DiagonalUpLeft"
-        );
+        assert_eq!(8, ferry.adjacent_occupied_seats(3, 3));
+        assert_eq!(8, ferry.adjacent_occupied_seats(2, 2));
+        assert_eq!(5, ferry.adjacent_occupied_seats(5, 4));
     }
 }
