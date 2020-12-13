@@ -16,39 +16,28 @@ fn problem2(data: &Vec<String>) {
         .split(',')
         .enumerate()
         .filter(|(_, f)| f != &"x")
-        .map(|(i, b)| {
-            let i = i as i64;
-            let b = b.parse::<i64>().unwrap();
-            if i == 0 {
-                (b, i)
-            } else {
-                //index, bus_id, remainder mod
-                (b, b - (i % b))
-            }
-        })
+        .map(|(i, b)| (i as i64, b.parse::<i64>().unwrap()))
         .collect();
 
     //Sorting to do the maximum first reduces our loops as we need to match smaller numbers.
     buses.sort_by(|a, b| b.1.cmp(&a.1));
     println!("{:?}", buses);
 
-    //minimum number can be the largest val
-    let mut current = buses[0].1;
-    let mut product = 1;
+    let mut time = 0;
+    let mut step = 1;
+    let mut count = 0; 
 
-    //we ignore the last loop as we have it covered in our lookahead code below
-    for i in 0..(buses.len() - 1) {
-        //We can step each loop by this amount as it must match this whole number
-        product *= buses[i].0;
-        //we loop until we have a multiple with left over matching what we need
-        while current % buses[i + 1].0 != buses[i + 1].1 {
-            //increment next search by current step
-            current += product;
+    for (offset, bus) in buses {
+        while (time + offset) % bus != 0 {
+            time += step;
+            count+=1; 
         }
-        println!("{:?} current - {:?} product - {:?}", i, current, product);
+        //We can take larger steps each time
+        println!("time:{:?} step:{:?} count:{:?}", time, step, count );
+        step *= bus;
     }
 
-    println!("Problem 2 - Lowest Time {:?}", current);
+    println!("Problem 2 - Lowest Time {:?} in {:?} loops", time, count);
 }
 
 fn problem1(data: &Vec<String>) {
